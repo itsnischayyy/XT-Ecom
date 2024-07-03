@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { UserEntity } from '../entities/user.entity';
 import { UpdateUserDto } from '../dtos/update-user.dto';
 import { IUsersRepository } from '../interfaces/users.interface';
@@ -29,10 +29,15 @@ export class UsersRepository implements IUsersRepository {
         return this.userRepository.findOne({ where: { username } });
     }
 
-    async create(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    async create(userSignUpDto: UserSignUpDto, queryRunner: QueryRunner): Promise<UserEntity> {
         const user = this.userRepository.create(userSignUpDto);
-        return this.userRepository.save(user);
+        // return this.userRepository.save(user, queryRunner);
+        return await queryRunner.manager.save(user, queryRunner);
     }
+
+    // async create(user: User, queryRunner: QueryRunner): Promise<User> {
+    //   return await queryRunner.manager.save(User, queryRunner);
+    // }
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {
         const user = await this.findOneById(id);

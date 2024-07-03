@@ -9,7 +9,7 @@ import {
     UseGuards,
     Res,
   } from '@nestjs/common';
-  import { CommandBus, QueryBus } from '@nestjs/cqrs';
+  import { CommandBus, EventBus, QueryBus } from '@nestjs/cqrs';
   import { CreateUserCommand } from './commands/impl/create-user.command';
   import { SignUpCommand } from './commands/impl/signup.command';
   import { SignInCommand } from './commands/impl/signin.command';
@@ -24,19 +24,46 @@ import { Response } from 'express';
 import { Roles } from '../utility/common/user-roles.enum';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../utility/decorators/current-user.decorator';
+import { UsersService } from './users.service';
+import { UnitOfWorkService } from '../utility/common/unit-of-work-service';
+import { UnitOfWork } from '../utility/common/unit-of-work';
+import { UserRegisteredEvent } from './events/user-registered.event';
   
   @Controller('users')
   export class UsersController {
     constructor(
       private readonly commandBus: CommandBus,
+      private readonly usersService: UsersService,
       private readonly queryBus: QueryBus,
+      // private readonly unitOfWork: UnitOfWorkService,
+      private readonly unitOfWork: UnitOfWork,
+      private eventBus: EventBus,
     ) {}
   
-    @Post('signup')
-    async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-      const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
-      return createdUser;
-    }
+ @Post('signup')
+  async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    return await this.unitOfWork.run(async (queryRunner, collectEvent) => {
+      return this.usersService.signup(userSignUpDto, queryRunner, collectEvent);
+    });
+  }
+
+    // @Post('signup')
+    // async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    //   return this.unitOfWork.doTransactional(async (): Promise<UserEntity> => {
+    //     const user = await this.usersService.signup(userSignUpDto);
+    //     return user;
+    //   });
+    //   // const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
+    //   // const user = await this.usersService.signup(userSignUpDto);
+    //   // return user;
+    // }
+
+  //   @Post()
+  // async create(@Body() orderDto: CreateOrderRequestDto) {
+  //   return this.unitOfWork.doTransactional(async (): Promise<Order> => {
+  //     return this.orderService.createOrder(orderDto);
+  //   });
+  // }
   
     @Post('signin')
     async signin(@Body() userSignInDto: UserSignInDto) {
