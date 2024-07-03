@@ -1,46 +1,30 @@
+import { ProductEntity } from 'src/modules/products/entities/product.entity';
 import { UserEntity } from 'src/modules/users/entities/user.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-  Timestamp,
-} from 'typeorm';
-import { ShippingEntity } from './shipping.entity';
-import { OrdersProductsEntity } from './orders-products.entity';
-import { OrderStatus } from '../enums/order-status.enum';
+import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity({ name: 'orders' })
+@Entity('orders')
 export class OrderEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @CreateDateColumn()
-  orderAt: Timestamp;
+  @Column()
+  orderId: string;
 
-  @Column({ type: 'enum', enum: OrderStatus, default: OrderStatus.PROCESSING })
-  status: string;
-
-  @Column({ nullable: true })
-  shippedAt: Date;
-
-  @Column({ nullable: true })
-  deliveredAt: Date;
-
-  @ManyToOne(() => UserEntity, (user) => user.ordersUpdateBy)
-  updatedBy: UserEntity;
-
-  @OneToOne(() => ShippingEntity, (ship) => ship.order, { cascade: true })
-  @JoinColumn()
-  shippingAddress: ShippingEntity;
-
-  @OneToMany(() => OrdersProductsEntity, (op) => op.order, { cascade: true })
-  products: OrdersProductsEntity[];
-
-  @ManyToOne(() => UserEntity, (user) => user.orders)
+  @ManyToOne(() => UserEntity, user => user.orders)
   user: UserEntity;
+
+  @ManyToOne(() => ProductEntity, product => product.orders)
+  product: ProductEntity;
+
+  @Column('decimal', { precision: 10, scale: 2 })
+  totalPrice: number;
+
+  @Column({ default: false })
+  isCompleted: boolean;
+
+  @CreateDateColumn()
+  createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

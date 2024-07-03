@@ -8,6 +8,6 @@ export class GetAllUsersHandler implements IQueryHandler<GetAllUsersQuery> {
   constructor(private readonly usersService: UsersService) {}
 
   async execute(query: GetAllUsersQuery) {
-    return this.usersService.findAll();
+    // return this.usersService.findAll();
   }
 }

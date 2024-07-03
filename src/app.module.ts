@@ -1,20 +1,26 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { CqrsModule } from '@nestjs/cqrs';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { AdminModule } from './modules/admin/admin.module';
-import { OrdersModule } from './modules/orders/orders.module';
-import { ProductsModule } from './modules/products/products.module';
 import { UsersModule } from './modules/users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { dataSourceOptions } from '../database/data-source';
-import { InventoryModule } from './modules/inventory/inventory.module';
+import { ProductsModule } from './modules/products/product.module';
 import { EmailModule } from './modules/email/email.module';
+import { dataSourceOptions } from '../database/data-source';
+import { OrdersModule } from './modules/orders/order.module';
+import { AuthModuleOptions } from '@nestjs/passport';
 
 @Module({
-  imports: [AdminModule, OrdersModule, ProductsModule, UsersModule, EmailModule, TypeOrmModule.forRoot(dataSourceOptions),
+  imports: [
+    TypeOrmModule.forRoot(dataSourceOptions),
+    CqrsModule,
+    UsersModule,
     ProductsModule,
-    InventoryModule,],
+    OrdersModule,
+    EmailModule,
+    AuthModuleOptions,
+  ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule {}

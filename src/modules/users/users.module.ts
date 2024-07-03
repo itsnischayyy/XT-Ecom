@@ -9,6 +9,9 @@ import { GetAllUsersHandler } from './queries/handlers/get-all-users.handler';
 import { GetUserHandler } from './queries/handlers/get-user.handler';
 import { UsersService } from './users.service';
 import { UserEntity } from './entities/user.entity';
+import { UsersRepository } from './repositories/users.repository';
+import { IUsersRepository } from './interfaces/users.interface';
+import { UnitOfWork } from '../utility/common/unit-of-work';
 
 @Module({
   imports: [
@@ -23,6 +26,12 @@ import { UserEntity } from './entities/user.entity';
     SignInHandler,
     GetAllUsersHandler,
     GetUserHandler,
+    {
+      provide: 'IUsersRepository',
+      useClass: UsersRepository,
+    },
+    UnitOfWork,
   ],
+  exports: [UsersService],
 })
 export class UsersModule {}

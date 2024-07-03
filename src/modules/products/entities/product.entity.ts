@@ -1,53 +1,30 @@
-import { CategoryEntity } from 'src/modules/categories/entities/category.entity';
-import { OrdersProductsEntity } from 'src/modules/orders/entities/orders-products.entity';
-import { ReviewEntity } from 'src/modules/reviews/entites/review.entity';
+import { OrderEntity } from 'src/modules/orders/entities/order.entity';
 import { UserEntity } from 'src/modules/users/entities/user.entity';
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-  Timestamp,
-  UpdateDateColumn,
-} from 'typeorm';
+import { Column, CreateDateColumn, Entity, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
-@Entity({ name: 'products' })
+@Entity('products')
 export class ProductEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
   @Column()
-  title: string;
+  name: string;
 
-  @Column()
+  @Column('text')
   description: string;
 
-  @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
+  @Column('decimal', { precision: 10, scale: 2 })
   price: number;
 
-  @Column()
-  stock: number;
+  @ManyToOne(() => UserEntity, user => user.products)
+  user: UserEntity;
 
-  @Column('simple-array')
-  images: string[];
+  @OneToMany(() => OrderEntity, order => order.product)
+  orders: OrderEntity[];
 
   @CreateDateColumn()
-  createdAt: Timestamp;
+  createdAt: Date;
 
   @UpdateDateColumn()
-  updatedAt: Timestamp;
-
-  @ManyToOne(() => UserEntity, (user) => user.products)
-  addedBy: UserEntity;
-
-  @ManyToOne(() => CategoryEntity, (cat) => cat.products)
-  category: CategoryEntity;
-
-  @OneToMany(() => ReviewEntity, (rev) => rev.product)
-  reviews: ReviewEntity[];
-
-  @OneToMany(() => OrdersProductsEntity, (op) => op.product)
-  products: OrdersProductsEntity[];
+  updatedAt: Date;
 }

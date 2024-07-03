@@ -8,6 +8,6 @@ export class GetUserHandler implements IQueryHandler<GetUserQuery> {
   constructor(private readonly usersService: UsersService) {}
 
   async execute(query: GetUserQuery) {
-    return this.usersService.findOne(query.id);
+    // return this.usersService.findOne(query.id);
   }
 }

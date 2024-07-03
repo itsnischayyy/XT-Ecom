@@ -9,6 +9,6 @@ export class CreateUserHandler implements ICommandHandler<CreateUserCommand> {
 
   async execute(command: CreateUserCommand) {
     const { createUserDto } = command;
-    return this.usersService.create(createUserDto); 
+    // return this.usersService.create(createUserDto); 
   }
 }
