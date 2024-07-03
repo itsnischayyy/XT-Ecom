@@ -9,8 +9,8 @@ export class SignUpHandler implements ICommandHandler<SignUpCommand> {
   constructor(private readonly usersService: UsersService) {}
 
   async execute(command: SignUpCommand): Promise<UserEntity> {
-    // const { userSignUpDto } = command;
-    // const createdUser = await this.usersService.signup(userSignUpDto);
-    return null;
+    const { userSignUpDto } = command;
+    const createdUser = await this.usersService.signup(userSignUpDto);
+    return createdUser;
   }
 }

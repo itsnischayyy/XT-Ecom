@@ -25,7 +25,6 @@ import { Roles } from '../utility/common/user-roles.enum';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../utility/decorators/current-user.decorator';
 import { UsersService } from './users.service';
-import { UnitOfWorkService } from '../utility/common/unit-of-work-service';
 import { UnitOfWork } from '../utility/common/unit-of-work';
 import { UserRegisteredEvent } from './events/user-registered.event';
   
@@ -43,7 +42,10 @@ import { UserRegisteredEvent } from './events/user-registered.event';
     @Post('signup')
     async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
       return await this.unitOfWork.run(async () => {
-        return this.usersService.signup(userSignUpDto);
+        // return this.usersService.signup(userSignUpDto);
+      const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
+      // const user = await this.usersService.signup(userSignUpDto);
+      return createdUser;
       });
     }
 
@@ -67,7 +69,9 @@ import { UserRegisteredEvent } from './events/user-registered.event';
   
     @Post('signin')
     async signin(@Body() userSignInDto: UserSignInDto) {
+      return await this.unitOfWork.run(async () => {
       return this.commandBus.execute(new SignInCommand(userSignInDto));
+    });
     }
   
     // @UseGuards(AuthenticationGuard, AuthorizeGuard([Roles.ADMIN]))

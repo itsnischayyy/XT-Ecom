@@ -67,10 +67,9 @@ export class UsersService {
   }
 
   async signin(userSignInDto: UserSignInDto): Promise<UserEntity> {
-    const userExists = await this.userRepository.findOneByEmail(userSignInDto.email);
+    const queryRunner = this.unitOfWork.getQueryRunner();
+    const userExists = await queryRunner.manager.findOne(UserEntity, { where: { email: userSignInDto.email } });
     if (!userExists) throw new BadRequestException('Bad credentials.');
-    console.log('first', userSignInDto);
-    console.log('first', userExists);
     const matchPassword = await compare(userSignInDto.password, userExists.password);
     if (!matchPassword) throw new BadRequestException('Bad credentials.');
     delete userExists.password;
