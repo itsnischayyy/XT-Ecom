@@ -15,12 +15,14 @@ import { UserRegisteredEvent } from './events/user-registered.event';
 import { CommandBus, QueryBus, EventBus } from '@nestjs/cqrs';
 import { IUsersRepository } from './interfaces/users.interface';
 import { QueryRunner } from 'typeorm';
+import { UnitOfWork } from '../utility/common/unit-of-work';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('IUsersRepository') private readonly userRepository: IUsersRepository,
     private eventBus: EventBus,
+    private readonly unitOfWork: UnitOfWork,
   ) { }
 
   // async signup(userSignUpDto: UserSignUpDto, queryRunner: QueryRunner): Promise<UserEntity> {
@@ -42,7 +44,8 @@ export class UsersService {
   //   }
   // }
 
-  async signup(userSignUpDto: UserSignUpDto, queryRunner: QueryRunner, collectEvent: (event: any) => void): Promise<UserEntity> {
+  async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    const queryRunner = this.unitOfWork.getQueryRunner();
     const userExists = await queryRunner.manager.findOne(UserEntity, { where: { email: userSignUpDto.email } });
     if (userExists) throw new BadRequestException('Email is not available.');
 
@@ -53,12 +56,12 @@ export class UsersService {
     const createdUser = await queryRunner.manager.save(UserEntity, user);
 
     // Simulate a failure to trigger rollback
-    if (0 == 0) {
-      throw new BadRequestException('Simulated failure after user creation.');
-    }
+    // if (0 == 0) {
+    //   throw new BadRequestException('Simulated failure after user creation.');
+    // }
 
     // Collect event to be published after transaction commits
-    collectEvent(new UserRegisteredEvent(createdUser.id, createdUser.email));
+    this.unitOfWork.collectEvent(new UserRegisteredEvent(createdUser.id, createdUser.email));
 
     return createdUser;
   }

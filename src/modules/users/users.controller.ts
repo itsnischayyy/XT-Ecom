@@ -40,12 +40,12 @@ import { UserRegisteredEvent } from './events/user-registered.event';
       private eventBus: EventBus,
     ) {}
   
- @Post('signup')
-  async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-    return await this.unitOfWork.run(async (queryRunner, collectEvent) => {
-      return this.usersService.signup(userSignUpDto, queryRunner, collectEvent);
-    });
-  }
+    @Post('signup')
+    async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+      return await this.unitOfWork.run(async () => {
+        return this.usersService.signup(userSignUpDto);
+      });
+    }
 
     // @Post('signup')
     // async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {

@@ -43,6 +43,7 @@ import { EventBus } from '@nestjs/cqrs';
 
 @Injectable()
 export class UnitOfWork {
+  private queryRunner: QueryRunner;
   private events: any[] = [];
 
   constructor(
@@ -50,27 +51,31 @@ export class UnitOfWork {
     private readonly eventBus: EventBus,
   ) {}
 
-  async run<T>(work: (queryRunner: QueryRunner, collectEvent: (event: any) => void) => Promise<T>): Promise<T> {
-    const queryRunner = this.connection.createQueryRunner();
-    await queryRunner.connect();
-    await queryRunner.startTransaction();
+  async run<T>(work: () => Promise<T>): Promise<T> {
+    this.queryRunner = this.connection.createQueryRunner();
+    await this.queryRunner.connect();
+    await this.queryRunner.startTransaction();
 
     try {
-      const result = await work(queryRunner, this.collectEvent.bind(this));
-      await queryRunner.commitTransaction();
+      const result = await work();
+      await this.queryRunner.commitTransaction();
       this.publishEvents();
       return result;
     } catch (err) {
-      await queryRunner.rollbackTransaction();
+      await this.queryRunner.rollbackTransaction();
       throw err;
     } finally {
-      await queryRunner.release();
+      await this.queryRunner.release();
       this.clearEvents();
     }
   }
 
-  private collectEvent(event: any) {
+  collectEvent(event: any) {
     this.events.push(event);
+  }
+
+  getQueryRunner(): QueryRunner {
+    return this.queryRunner;
   }
 
   private publishEvents() {
@@ -81,4 +86,5 @@ export class UnitOfWork {
     this.events = [];
   }
 }
+
 
