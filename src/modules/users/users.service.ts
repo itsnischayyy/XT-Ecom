@@ -62,6 +62,7 @@ export class UsersService {
 
     // Collect event to be published after transaction commits
     this.unitOfWork.collectEvent(new UserRegisteredEvent(createdUser.id, createdUser.email));
+    this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
 
     return createdUser;
   }
@@ -72,7 +73,12 @@ export class UsersService {
     if (!userExists) throw new BadRequestException('Bad credentials.');
     const matchPassword = await compare(userSignInDto.password, userExists.password);
     if (!matchPassword) throw new BadRequestException('Bad credentials.');
+    this.unitOfWork.log(`User with email ${userSignInDto.email} signedin successfully.`);
     delete userExists.password;
+        // Simulate a failure to trigger rollback
+    // if (0 == 0) {
+    //   throw new BadRequestException('Simulated failure after user creation.');
+    // }
     return userExists;
   }
 

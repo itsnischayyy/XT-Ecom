@@ -45,6 +45,7 @@ import { EventBus } from '@nestjs/cqrs';
 export class UnitOfWork {
   private queryRunner: QueryRunner;
   private events: any[] = [];
+  private logs: any[] = [];
 
   constructor(
     private readonly connection: Connection,
@@ -60,6 +61,7 @@ export class UnitOfWork {
       const result = await work();
       await this.queryRunner.commitTransaction();
       this.publishEvents();
+      this.executeLogs();
       return result;
     } catch (err) {
       await this.queryRunner.rollbackTransaction();
@@ -67,11 +69,16 @@ export class UnitOfWork {
     } finally {
       await this.queryRunner.release();
       this.clearEvents();
+      this.clearLogs();
     }
   }
 
   collectEvent(event: any) {
     this.events.push(event);
+  }
+
+  log(message: any) {
+    this.logs.push(message);
   }
 
   getQueryRunner(): QueryRunner {
@@ -82,8 +89,16 @@ export class UnitOfWork {
     this.events.forEach(event => this.eventBus.publish(event));
   }
 
+  private executeLogs() {
+    this.logs.forEach(log => console.log(log));
+  }
+
   private clearEvents() {
     this.events = [];
+  }
+
+  private clearLogs() {
+    this.logs = [];
   }
 }
 
