@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DataSource, Repository } from 'typeorm';
+import { DataSource, QueryRunner, Repository } from 'typeorm';
 import { ProductEntity } from '../entities/product.entity';
 import { IProductsRepository } from '../interfaces/product.interface';
 import { CreateProductDto } from '../dto/create-product.dto';
 import { UpdateProductDto } from '../dto/update-product.dto';
 import { UserEntity } from 'src/modules/users/entities/user.entity';
+import { UnitOfWork } from 'src/modules/utility/common/unit-of-work';
 
 @Injectable()
 export class ProductsRepository implements IProductsRepository {
@@ -14,7 +15,10 @@ export class ProductsRepository implements IProductsRepository {
 //     private readonly productRepository: Repository<ProductEntity>,
 //   ) {}
 private readonly productRepository: Repository<ProductEntity>;
-constructor(private dataSource: DataSource) {
+
+constructor(private dataSource: DataSource,
+  private readonly unitOfWork: UnitOfWork,
+) {
     this.productRepository = this.dataSource.getRepository(ProductEntity);
 }
 
@@ -26,10 +30,12 @@ constructor(private dataSource: DataSource) {
     return this.productRepository.findOne({ where: { id } });
   }
 
-  async create(createProductDto: CreateProductDto, user: UserEntity): Promise<ProductEntity> {
+  async create(createProductDto: CreateProductDto, user: UserEntity, queryRunner: QueryRunner): Promise<ProductEntity> {
     const product = this.productRepository.create(createProductDto);
     product.user = user;
-    return this.productRepository.save(product);
+    // return this.productRepository.save(product);
+    // return await queryRunner.manager.save(product, queryRunner);
+    return await this.unitOfWork.getQueryRunner().manager.save(product);
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<ProductEntity> {
@@ -51,3 +57,53 @@ constructor(private dataSource: DataSource) {
     await this.productRepository.remove(product);
   }
 }
+
+
+// import { Injectable } from '@nestjs/common';
+// import { DataSource, Repository } from 'typeorm';
+// import { ProductEntity } from '../entities/product.entity';
+// import { IProductsRepository } from '../interfaces/product.interface';
+// import { CreateProductDto } from '../dto/create-product.dto';
+// import { UpdateProductDto } from '../dto/update-product.dto';
+// import { UserEntity } from 'src/modules/users/entities/user.entity';
+// import { UnitOfWork } from 'src/modules/utility/common/unit-of-work';
+
+// @Injectable()
+// export class ProductsRepository implements IProductsRepository {
+//   private readonly productRepository: Repository<ProductEntity>;
+
+//   constructor(private dataSource: DataSource, private readonly unitOfWork: UnitOfWork) {
+//     this.productRepository = this.dataSource.getRepository(ProductEntity);
+//   }
+
+//   async findAll(): Promise<ProductEntity[]> {
+//     return this.productRepository.find();
+//   }
+
+//   async findById(id: number): Promise<ProductEntity | undefined> {
+//     return this.productRepository.findOne({ where: { id } });
+//   }
+
+//   async create(createProductDto: CreateProductDto, user: UserEntity): Promise<ProductEntity> {
+//     const product = this.productRepository.create(createProductDto);
+//     product.user = user;
+//     return this.productRepository.save(product);
+//   }
+
+//   async update(id: number, updateProductDto: UpdateProductDto): Promise<ProductEntity> {
+//     const product = await this.findById(id);
+//     if (!product) {
+//       throw new Error(`Product with id ${id} not found`);
+//     }
+//     this.productRepository.merge(product, updateProductDto);
+//     return this.productRepository.save(product);
+//   }
+
+//   async delete(id: number): Promise<void> {
+//     const product = await this.findById(id);
+//     if (!product) {
+//       throw new Error(`Product with id ${id} not found`);
+//     }
+//     await this.productRepository.remove(product);
+//   }
+// }

@@ -48,32 +48,32 @@ import { UserRegisteredEvent } from './events/user-registered.event';
       return createdUser;
       });
     }
-
-    // @Post('signup')
-    // async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-    //   return this.unitOfWork.doTransactional(async (): Promise<UserEntity> => {
-    //     const user = await this.usersService.signup(userSignUpDto);
-    //     return user;
-    //   });
-    //   // const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
-    //   // const user = await this.usersService.signup(userSignUpDto);
-    //   // return user;
-    // }
-
-  //   @Post()
-  // async create(@Body() orderDto: CreateOrderRequestDto) {
-  //   return this.unitOfWork.doTransactional(async (): Promise<Order> => {
-  //     return this.orderService.createOrder(orderDto);
-  //   });
-  // }
-  
+    
     @Post('signin')
     async signin(@Body() userSignInDto: UserSignInDto) {
       return await this.unitOfWork.run(async () => {
-      return this.commandBus.execute(new SignInCommand(userSignInDto));
-    });
+        return this.commandBus.execute(new SignInCommand(userSignInDto));
+      });
     }
-  
+    
+        // @Post('signup')
+        // async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+        //   return this.unitOfWork.doTransactional(async (): Promise<UserEntity> => {
+        //     const user = await this.usersService.signup(userSignUpDto);
+        //     return user;
+        //   });
+        //   // const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
+        //   // const user = await this.usersService.signup(userSignUpDto);
+        //   // return user;
+        // }
+    
+      //   @Post()
+      // async create(@Body() orderDto: CreateOrderRequestDto) {
+      //   return this.unitOfWork.doTransactional(async (): Promise<Order> => {
+      //     return this.orderService.createOrder(orderDto);
+      //   });
+      // }
+    
     // @UseGuards(AuthenticationGuard, AuthorizeGuard([Roles.ADMIN]))
     // @UseGuards(JwtAuthGuard)
     // @Get('all')

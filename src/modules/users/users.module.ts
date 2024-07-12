@@ -12,6 +12,8 @@ import { UserEntity } from './entities/user.entity';
 import { UsersRepository } from './repositories/users.repository';
 import { IUsersRepository } from './interfaces/users.interface';
 import { UnitOfWork } from '../utility/common/unit-of-work';
+import { ProductsService } from '../products/product.service';
+import { ProductsRepository } from '../products/repositories/product.repository';
 
 @Module({
   imports: [
@@ -30,7 +32,12 @@ import { UnitOfWork } from '../utility/common/unit-of-work';
       provide: 'IUsersRepository',
       useClass: UsersRepository,
     },
+    {
+      provide: 'IProductsRepository',
+      useClass: ProductsRepository,
+    },
     UnitOfWork,
+    ProductsService,
   ],
   exports: [UsersService],
 })

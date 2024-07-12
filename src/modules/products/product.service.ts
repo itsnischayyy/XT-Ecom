@@ -1,19 +1,26 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ProductEntity } from './entities/product.entity';
 import { IProductsRepository } from './interfaces/product.interface';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { EventBus } from '@nestjs/cqrs';
+import { UnitOfWork } from '../utility/common/unit-of-work';
 @Injectable()
 export class ProductsService {
   constructor(
     @Inject('IProductsRepository') private readonly productRepository: IProductsRepository,
     private eventBus: EventBus,
+    private readonly unitOfWork: UnitOfWork,
   ) { }
 
   async create(createProductDto: CreateProductDto, user: any): Promise<ProductEntity> {
-    return this.productRepository.create(createProductDto, user);
+    // const queryRunner = this.unitOfWork.getQueryRunner();
+    const product = this.productRepository.create(createProductDto, user);
+    // if (0 == 0) {
+    //   throw new BadRequestException('Simulated failure after user creation.');
+    // }
+    return product;
   }
 
   async findAll(): Promise<ProductEntity[]> {

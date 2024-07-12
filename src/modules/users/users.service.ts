@@ -16,6 +16,7 @@ import { CommandBus, QueryBus, EventBus } from '@nestjs/cqrs';
 import { IUsersRepository } from './interfaces/users.interface';
 import { QueryRunner } from 'typeorm';
 import { UnitOfWork } from '../utility/common/unit-of-work';
+import { ProductsService } from '../products/product.service';
 
 @Injectable()
 export class UsersService {
@@ -23,7 +24,65 @@ export class UsersService {
     @Inject('IUsersRepository') private readonly userRepository: IUsersRepository,
     private eventBus: EventBus,
     private readonly unitOfWork: UnitOfWork,
+    private readonly productsService: ProductsService,
   ) { }
+
+  async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+      // const queryRunner = this.unitOfWork.getQueryRunner();
+      const userExists = await this.userRepository.findOneByEmail(userSignUpDto.email);
+      if (userExists) throw new BadRequestException('Email is not available.');
+
+      userSignUpDto.password = await hash(userSignUpDto.password, 10);
+      const user = await this.userRepository.create(userSignUpDto);
+
+
+          const testProduct = {
+            "name": "testabcdefgh",
+            "description": "test5",
+            "price": 500
+        }
+        const TestUser = null;
+      const prod = await this.productsService.create(testProduct, TestUser);
+
+      
+          // Simulate a failure to trigger rollback
+          // if (0 == 0) {
+          //   throw new BadRequestException('Simulated failure after user creation.');
+          // }
+
+      // Collect event to be published after transaction commits
+      this.unitOfWork.collectEvent(new UserRegisteredEvent(user.id, user.email));
+      this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
+
+      return user;
+  }
+
+  async signin(userSignInDto: UserSignInDto): Promise<UserEntity> {
+    const queryRunner = this.unitOfWork.getQueryRunner();
+    const userExists = await queryRunner.manager.findOne(UserEntity, { where: { email: userSignInDto.email } });
+    if (!userExists) throw new BadRequestException('Bad credentials.');
+    const matchPassword = await compare(userSignInDto.password, userExists.password);
+    if (!matchPassword) throw new BadRequestException('Bad credentials.');
+    this.unitOfWork.log(`User with email ${userSignInDto.email} signedin successfully.`);
+    delete userExists.password;
+        // Simulate a failure to trigger rollback
+    // if (0 == 0) {
+    //   throw new BadRequestException('Simulated failure after user creation.');
+    // }
+    return userExists;
+  }
+
+  async accessToken(user: UserEntity): Promise<string> {
+    return sign(
+      { id: user.id, email: user.email },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_SECRET_EXPIRE },
+    );
+  }
+}
+
+
+
 
   // async signup(userSignUpDto: UserSignUpDto, queryRunner: QueryRunner): Promise<UserEntity> {
   //   try {
@@ -44,43 +103,7 @@ export class UsersService {
   //   }
   // }
 
-  async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-    const queryRunner = this.unitOfWork.getQueryRunner();
-    const userExists = await queryRunner.manager.findOne(UserEntity, { where: { email: userSignUpDto.email } });
-    if (userExists) throw new BadRequestException('Email is not available.');
-
-    userSignUpDto.password = await hash(userSignUpDto.password, 10);
-    const user = new UserEntity();
-    Object.assign(user, userSignUpDto);
-
-    const createdUser = await queryRunner.manager.save(UserEntity, user);
-
-    // Simulate a failure to trigger rollback
-    // if (0 == 0) {
-    //   throw new BadRequestException('Simulated failure after user creation.');
-    // }
-
-    // Collect event to be published after transaction commits
-    this.unitOfWork.collectEvent(new UserRegisteredEvent(createdUser.id, createdUser.email));
-    this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
-
-    return createdUser;
-  }
-
-  async signin(userSignInDto: UserSignInDto): Promise<UserEntity> {
-    const queryRunner = this.unitOfWork.getQueryRunner();
-    const userExists = await queryRunner.manager.findOne(UserEntity, { where: { email: userSignInDto.email } });
-    if (!userExists) throw new BadRequestException('Bad credentials.');
-    const matchPassword = await compare(userSignInDto.password, userExists.password);
-    if (!matchPassword) throw new BadRequestException('Bad credentials.');
-    this.unitOfWork.log(`User with email ${userSignInDto.email} signedin successfully.`);
-    delete userExists.password;
-        // Simulate a failure to trigger rollback
-    // if (0 == 0) {
-    //   throw new BadRequestException('Simulated failure after user creation.');
-    // }
-    return userExists;
-  }
+  
 
   // async create(createUserDto: CreateUserDto): Promise<UserEntity> {
   //   try {
@@ -114,15 +137,7 @@ export class UsersService {
   //   return await this.userRepository.remove(id);
   // }
 
-  async findUserByEmail(email: string): Promise<UserEntity | undefined> {
-    return await this.userRepository.findOneByEmail(email);
-  }
-
-  async accessToken(user: UserEntity): Promise<string> {
-    return sign(
-      { id: user.id, email: user.email },
-      process.env.JWT_SECRET,
-      { expiresIn: process.env.JWT_SECRET_EXPIRE },
-    );
-  }
-}
+  
+  // async findUserByEmail(email: string): Promise<UserEntity | undefined> {
+  //   return await this.userRepository.findOneByEmail(email);
+  // }

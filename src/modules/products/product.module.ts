@@ -6,6 +6,7 @@ import { ProductsController } from './product.controller';
 import { ProductsService } from './product.service';
 import { ProductsRepository } from './repositories/product.repository';
 import { JwtStrategy } from '../auth/jwt.strategy';
+import { UnitOfWork } from '../utility/common/unit-of-work';
 
 // const CommandHandlers = [CreateProductHandler, UpdateProductHandler, DeleteProductHandler];
 // const QueryHandlers = [GetAllProductsHandler, GetProductHandler];
@@ -26,6 +27,7 @@ import { JwtStrategy } from '../auth/jwt.strategy';
       provide: 'IProductsRepository',
       useClass: ProductsRepository,
     },
+    UnitOfWork,
   ],
   exports: [ProductsService],
 })
