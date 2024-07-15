@@ -6,6 +6,7 @@ import { UpdateProductDto } from './dto/update-product.dto';
 import { UserEntity } from '../users/entities/user.entity';
 import { EventBus } from '@nestjs/cqrs';
 import { UnitOfWork } from '../utility/common/unit-of-work';
+import { QueryRunner } from 'typeorm';
 @Injectable()
 export class ProductsService {
   constructor(
@@ -14,12 +15,16 @@ export class ProductsService {
     private readonly unitOfWork: UnitOfWork,
   ) { }
 
-  async create(createProductDto: CreateProductDto, user: any): Promise<ProductEntity> {
-    // const queryRunner = this.unitOfWork.getQueryRunner();
-    const product = this.productRepository.create(createProductDto, user);
+  async create(createProductDto: CreateProductDto, user: UserEntity, queryRunner: QueryRunner): Promise<ProductEntity> {
+    const product = await this.productRepository.create(createProductDto, user, queryRunner);
     // if (0 == 0) {
     //   throw new BadRequestException('Simulated failure after user creation.');
     // }
+    if (product) {
+      // Perform additional operations if necessary
+    } else {
+      throw new BadRequestException('Failed to create product.');
+    }
     return product;
   }
 

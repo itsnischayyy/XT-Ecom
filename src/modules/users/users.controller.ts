@@ -27,6 +27,7 @@ import { CurrentUser } from '../utility/decorators/current-user.decorator';
 import { UsersService } from './users.service';
 import { UnitOfWork } from '../utility/common/unit-of-work';
 import { UserRegisteredEvent } from './events/user-registered.event';
+import { TestingCommand } from './commands/impl/testing.command';
   
   @Controller('users')
   export class UsersController {
@@ -41,13 +42,21 @@ import { UserRegisteredEvent } from './events/user-registered.event';
   
     @Post('signup')
     async signup(@Body() userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-      return await this.unitOfWork.run(async () => {
         // return this.usersService.signup(userSignUpDto);
       const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
-      // const user = await this.usersService.signup(userSignUpDto);
+      // const createdUser: UserEntity = await this.usersService.signup(userSignUpDto);
       return createdUser;
-      });
     }
+
+    // @Post('signupTesting')
+    // async signupTesting(@Body() userSignUpDto: UserSignUpDto): Promise<any> {
+    //     // return this.usersService.signup(userSignUpDto);
+    //   const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
+    //   const createdUser2 : UserEntity = await this.commandBus.execute(new TestingCommand(userSignUpDto));
+    //   // const createdUser: UserEntity = await this.usersService.signup(userSignUpDto);
+    //   const user = {createdUser, createdUser2}
+    //   return user;
+    // }
     
     @Post('signin')
     async signin(@Body() userSignInDto: UserSignInDto) {

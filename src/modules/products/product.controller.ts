@@ -5,16 +5,21 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../utility/decorators/current-user.decorator';
+import { UnitOfWork } from '../utility/common/unit-of-work';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(private readonly productsService: ProductsService,
+    private readonly unitOfWork: UnitOfWork,
+  ) {}
 
 //   @UseGuards(JwtAuthGuard)
   @Post()
   async create(@Body() createProductDto: CreateProductDto, @CurrentUser() user: any): Promise<ProductEntity> {
+    return await this.unitOfWork.run(async (queryRunner) => {
     console.log('user', user);
-    return this.productsService.create(createProductDto, user);
+    return this.productsService.create(createProductDto, user, queryRunner);
+  });
   }
 
   @Get()

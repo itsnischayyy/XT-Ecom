@@ -27,35 +27,37 @@ export class UsersService {
     private readonly productsService: ProductsService,
   ) { }
 
-  async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
-      // const queryRunner = this.unitOfWork.getQueryRunner();
+async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    return await this.unitOfWork.run(async (queryRunner) => {
       const userExists = await this.userRepository.findOneByEmail(userSignUpDto.email);
-      if (userExists) throw new BadRequestException('Email is not available.');
+      if (userExists) {
+        throw new BadRequestException('Email is not available.');
+      }
 
       userSignUpDto.password = await hash(userSignUpDto.password, 10);
-      const user = await this.userRepository.create(userSignUpDto);
+      const user = await this.userRepository.create(userSignUpDto, queryRunner);
 
+      // Create product example
+      const testProduct = {
+        "name": "testabcdefgh",
+        "description": "test4",
+        "price": 500
+      };
+      const prod = await this.productsService.create(testProduct, user, queryRunner);
 
-          const testProduct = {
-            "name": "testabcdefgh",
-            "description": "test5",
-            "price": 500
-        }
-        const TestUser = null;
-      const prod = await this.productsService.create(testProduct, TestUser);
-
-      
-          // Simulate a failure to trigger rollback
-          // if (0 == 0) {
-          //   throw new BadRequestException('Simulated failure after user creation.');
-          // }
+      // if (0 == 0) {
+      //   throw new BadRequestException('Simulated failure after user creation.');
+      // }
 
       // Collect event to be published after transaction commits
       this.unitOfWork.collectEvent(new UserRegisteredEvent(user.id, user.email));
       this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
 
       return user;
+    });
   }
+
+
 
   async signin(userSignInDto: UserSignInDto): Promise<UserEntity> {
     const queryRunner = this.unitOfWork.getQueryRunner();
@@ -78,6 +80,38 @@ export class UsersService {
       process.env.JWT_SECRET,
       { expiresIn: process.env.JWT_SECRET_EXPIRE },
     );
+  }
+
+  async signup2(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
+    return await this.unitOfWork.run(async (queryRunner) => {
+      // const userExists = await this.userRepository.findOneByEmail(userSignUpDto.email);
+      // if (userExists) {
+      //   throw new BadRequestException('Email is not available.');
+      // }
+
+      const userTest = {
+        "username": "testUser1",
+        "email": "test1@gmail.com",
+        "password": "testPassword"
+      };
+
+      userTest.password = await hash(userTest.password, 10);
+      const user = await this.userRepository.create(userTest, queryRunner);
+
+      // Create product example
+      const testProduct = {
+        "name": "testabcdefgh",
+        "description": "test5",
+        "price": 500
+      };
+      const prod = await this.productsService.create(testProduct, user, queryRunner);
+
+      // Collect event to be published after transaction commits
+      this.unitOfWork.collectEvent(new UserRegisteredEvent(user.id, user.email));
+      this.unitOfWork.log(`User with email ${userTest.email} created successfully.`);
+
+      return user;
+    });
   }
 }
 

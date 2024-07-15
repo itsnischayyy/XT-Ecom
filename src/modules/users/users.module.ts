@@ -14,6 +14,7 @@ import { IUsersRepository } from './interfaces/users.interface';
 import { UnitOfWork } from '../utility/common/unit-of-work';
 import { ProductsService } from '../products/product.service';
 import { ProductsRepository } from '../products/repositories/product.repository';
+import { TestingHandler } from './commands/handlers/testing.handler';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ProductsRepository } from '../products/repositories/product.repository'
     SignInHandler,
     GetAllUsersHandler,
     GetUserHandler,
+    TestingHandler,
     {
       provide: 'IUsersRepository',
       useClass: UsersRepository,

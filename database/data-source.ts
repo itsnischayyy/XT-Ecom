@@ -16,7 +16,7 @@ export const dataSourceOptions: DataSourceOptions = {
 };
 
 // Create DataSource instance and initialize it
-// const dataSource = new DataSource(dataSourceOptions);
-// dataSource.initialize();
+const dataSource = new DataSource(dataSourceOptions);
+dataSource.initialize();
 
-// export default dataSource;
+export default dataSource;
