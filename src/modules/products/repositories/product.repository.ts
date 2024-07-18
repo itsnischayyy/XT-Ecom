@@ -33,7 +33,8 @@ constructor(private dataSource: DataSource,
   async create(createProductDto: CreateProductDto, user: UserEntity, queryRunner: QueryRunner): Promise<ProductEntity> {
     const product = this.productRepository.create(createProductDto);
     product.user = user;
-    return await queryRunner.manager.save(product);
+    return await this.unitOfWork.getQueryRunner().manager.save(product);
+    // return await queryRunner.manager.save(product);
   }
 
   async update(id: number, updateProductDto: UpdateProductDto): Promise<ProductEntity> {

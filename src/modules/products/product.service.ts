@@ -15,7 +15,7 @@ export class ProductsService {
     private readonly unitOfWork: UnitOfWork,
   ) { }
 
-  async create(createProductDto: CreateProductDto, user: UserEntity, queryRunner: QueryRunner): Promise<ProductEntity> {
+  async create(createProductDto: CreateProductDto, user: UserEntity, queryRunner?: QueryRunner): Promise<ProductEntity> {
     const product = await this.productRepository.create(createProductDto, user, queryRunner);
     // if (0 == 0) {
     //   throw new BadRequestException('Simulated failure after user creation.');

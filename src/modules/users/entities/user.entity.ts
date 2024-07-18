@@ -1,6 +1,7 @@
 import { OrderEntity } from 'src/modules/orders/entities/order.entity';
 import { ProductEntity } from 'src/modules/products/entities/product.entity';
-import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { AfterInsert, BeforeInsert, Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { CustomUserEvent } from '../events/custom-user.event';
 
 @Entity('users')
 export class UserEntity {
@@ -30,4 +31,21 @@ export class UserEntity {
 
   @UpdateDateColumn()
   updatedAt: Date;
+
+  private events: any[] = [];
+
+  static created(employeeId: string): CustomUserEvent {
+    return new CustomUserEvent(employeeId);
+  }
+
+  @BeforeInsert()
+  beforeInsert() {
+    console.log('Before Insert event of employee called:', this);
+  }
+
+  @AfterInsert()
+  afterInsert() {
+    console.log('After Insert event of employee called:', this);
+    this.events.push(new CustomUserEvent(this.id));
+  }
 }

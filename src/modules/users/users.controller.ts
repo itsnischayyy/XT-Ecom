@@ -48,15 +48,15 @@ import { TestingCommand } from './commands/impl/testing.command';
       return createdUser;
     }
 
-    // @Post('signupTesting')
-    // async signupTesting(@Body() userSignUpDto: UserSignUpDto): Promise<any> {
-    //     // return this.usersService.signup(userSignUpDto);
-    //   const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
-    //   const createdUser2 : UserEntity = await this.commandBus.execute(new TestingCommand(userSignUpDto));
-    //   // const createdUser: UserEntity = await this.usersService.signup(userSignUpDto);
-    //   const user = {createdUser, createdUser2}
-    //   return user;
-    // }
+    @Post('signupTesting')
+    async signupTesting(@Body() userSignUpDto: UserSignUpDto): Promise<any> {
+        // return this.usersService.signup(userSignUpDto);
+      const createdUser : UserEntity = await this.commandBus.execute(new SignUpCommand(userSignUpDto));
+      const createdUser2 : UserEntity = await this.commandBus.execute(new TestingCommand(userSignUpDto));
+      // const createdUser: UserEntity = await this.usersService.signup(userSignUpDto);
+      const user = {createdUser, createdUser2}
+      return user;
+    }
     
     @Post('signin')
     async signin(@Body() userSignInDto: UserSignInDto) {

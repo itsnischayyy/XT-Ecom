@@ -36,9 +36,9 @@ export class UsersRepository implements IUsersRepository {
     async create(userSignUpDto: UserSignUpDto, queryRunner: QueryRunner): Promise<UserEntity> {
         const user = this.userRepository.create(userSignUpDto);
         // return this.userRepository.save(user, queryRunner);
-        return await queryRunner.manager.save(user, queryRunner);
+        // return await queryRunner.manager.save(user, queryRunner);
         // console.log('first', this.unitOfWork.getQueryRunner().manager);
-        // return await this.unitOfWork.getQueryRunner().manager.save(user);
+        return await this.unitOfWork.getQueryRunner().manager.save(user);
     }
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<UserEntity> {

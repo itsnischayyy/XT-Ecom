@@ -9,10 +9,17 @@ import { EmailModule } from './modules/email/email.module';
 import { dataSourceOptions } from '../database/data-source';
 import { OrdersModule } from './modules/orders/order.module';
 import { AuthModuleOptions } from '@nestjs/passport';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions),
+    BullModule.forRoot({
+      redis: {
+        host: 'localhost',
+        port: 6379,
+      },
+    }),
     CqrsModule,
     UsersModule,
     ProductsModule,

@@ -15,11 +15,15 @@ import { UnitOfWork } from '../utility/common/unit-of-work';
 import { ProductsService } from '../products/product.service';
 import { ProductsRepository } from '../products/repositories/product.repository';
 import { TestingHandler } from './commands/handlers/testing.handler';
+import { BullModule } from '@nestjs/bull';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([UserEntity]),
     CqrsModule,
+    BullModule.registerQueue({
+      name: 'email',
+    }),
   ],
   controllers: [UsersController],
   providers: [

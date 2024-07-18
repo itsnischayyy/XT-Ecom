@@ -17,11 +17,14 @@ import { IUsersRepository } from './interfaces/users.interface';
 import { QueryRunner } from 'typeorm';
 import { UnitOfWork } from '../utility/common/unit-of-work';
 import { ProductsService } from '../products/product.service';
+import { Queue } from 'bullmq';
+import { InjectQueue } from '@nestjs/bull';
 
 @Injectable()
 export class UsersService {
   constructor(
     @Inject('IUsersRepository') private readonly userRepository: IUsersRepository,
+    @InjectQueue('email') private readonly emailQueue: Queue,
     private eventBus: EventBus,
     private readonly unitOfWork: UnitOfWork,
     private readonly productsService: ProductsService,
@@ -35,7 +38,7 @@ async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
       }
 
       userSignUpDto.password = await hash(userSignUpDto.password, 10);
-      const user = await this.userRepository.create(userSignUpDto, queryRunner);
+      const user = await this.userRepository.create(userSignUpDto);
 
       // Create product example
       const testProduct = {
@@ -43,15 +46,58 @@ async signup(userSignUpDto: UserSignUpDto): Promise<UserEntity> {
         "description": "test4",
         "price": 500
       };
-      const prod = await this.productsService.create(testProduct, user, queryRunner);
+      const prod = await this.productsService.create(testProduct, user);
+
+      this.emailQueue.add('sendEmail', {
+        email: userSignUpDto.email,
+      });
+      // this.emailQueue.add('sendEmail', {
+      //   email: "1",
+      // });
+      // this.emailQueue.add('sendEmail', {
+      //   email: "2",
+      // });
+      // this.emailQueue.add('sendEmail', {
+      //   email: "3",
+      // });
+      // this.emailQueue.add('sendEmail', {
+      //   email: "4",
+      // });
+      // this.emailQueue.add('sendEmail', {
+      //   email: "5",
+      // });
+      // console.log('Time Out Started');
+      // await setTimeout(() => {
+      //   // console.log("Delayed for 1 second.");
+      // }, 10000);
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "7",
+      // });
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "8",
+      // });
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "9",
+      // });
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "10",
+      // });
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "11",
+      // });
+      // this.emailQueue.add('sendEmail2', {
+      //   email: "12",
+      // });
+
+      // console.log("Email has been sent");
 
       // if (0 == 0) {
       //   throw new BadRequestException('Simulated failure after user creation.');
       // }
 
       // Collect event to be published after transaction commits
-      this.unitOfWork.collectEvent(new UserRegisteredEvent(user.id, user.email));
-      this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
+      // this.unitOfWork.collectEvent(new UserRegisteredEvent(user.id, user.email));
+      // this.unitOfWork.log(`User with email ${userSignUpDto.email} created successfully.`);
 
       return user;
     });
